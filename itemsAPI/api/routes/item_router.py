@@ -1,47 +1,52 @@
-from fastapi import FastAPI, APIRouter, Path, Response, responses,status
-from itemsAPI.models.item import Item
+from pymongo import MongoClient
+from fastapi import APIRouter, Path, Response, responses,status
+from models.item import Item
 from typing import List
+from fastapi.encoders import jsonable_encoder
 
+myclient = MongoClient(host='mongodb',port=27017)    
+mydb = myclient["inventory"]
+items_collection = mydb["items"]
 router = APIRouter()
-inventory: List[Item]=[]
 
 @router.get("/GetAllItems")
 async def get_items(response: Response):
-    if not inventory:
+    output =[]
+    for x in items_collection.find({}, {"_id":0}):
+        output.append(x)
+    if not output:
         response.status_code=status.HTTP_404_NOT_FOUND
         return {"Error": "No items in the inventory."}
-    return inventory
+    return output
 
 @router.get("/GetItemById/{item_id}")
 async def get_item_by_id(item_id: str, response: Response):
-    for item in inventory:
-        if item_id == item.id:
-            return {"Message": "Item succesffuly found"}
+    item = items_collection.find_one({"id": item_id}, {"_id":0})
+    if item:
+        return jsonable_encoder(item)
     response.status_code=status.HTTP_404_NOT_FOUND
     return {"Error":"Item not found"}
 
 @router.post("/AddItem")
 async def add_item(item: Item, response: Response):
-    for it in inventory:
-        if item.id == it.id:
-            response.status_code= status.HTTP_409_CONFLICT
-            return {"Error": "Item with that ID already exist"}
-    inventory.append(item)
-    return item
+    if items_collection.find_one({"id": item.id}, {"_id":0}):
+        response.status_code= status.HTTP_409_CONFLICT
+        return {"Error": "Item with that ID already exist"}  
+    items_collection.insert_one(jsonable_encoder(item))
+    return {"Message": "Added Item"}
 
 @router.delete("/DeleteItems")
 async def delete_items(response: Response):
-    if not inventory:
+    result = items_collection.delete_many({})
+    if result.deleted_count ==0:
         response.status_code= status.HTTP_400_BAD_REQUEST
         return {"Error": "No items in the inventory."}
-    inventory.clear()
     return {"Message": "Items deleted successfully!"}
 
 @router.delete("/DeleteItem/{item_id}")
 async def delete_item(item_id: str, response: Response):
-    for item in inventory:
-        if item_id == item.id:
-            inventory.remove(item)
-            return {"Message": "Item removed successfully"}
-    response.status_code=status.HTTP_400_BAD_REQUEST
-    return {"Error":"Item not found"}
+    result = items_collection.delete_one({"id":item_id})
+    if result.deleted_count==0:
+        response.status_code=status.HTTP_400_BAD_REQUEST
+        return {"Error":"Item not found"}
+    return {"Message": "Item removed successfully"}  
