@@ -4,13 +4,15 @@ from models.item import Item
 from typing import List
 from fastapi.encoders import jsonable_encoder
 
-myclient = MongoClient(host='mongodb',port=27017)    
-mydb = myclient["inventory"]
-items_collection = mydb["items"]
-router = APIRouter()
 
+router = APIRouter()
+def get_connection():
+    myclient = MongoClient(host='mongodb',port=27017)    
+    mydb = myclient["inventory"]
+    return mydb["items"]
 @router.get("/GetAllItems")
 async def get_items(response: Response):
+    items_collection= get_connection()
     output =[]
     for x in items_collection.find({}, {"_id":0}):
         output.append(x)
@@ -21,6 +23,7 @@ async def get_items(response: Response):
 
 @router.get("/GetItemById/{item_id}")
 async def get_item_by_id(item_id: str, response: Response):
+    items_collection= get_connection()
     item = items_collection.find_one({"id": item_id}, {"_id":0})
     if item:
         return jsonable_encoder(item)
@@ -29,6 +32,7 @@ async def get_item_by_id(item_id: str, response: Response):
 
 @router.post("/AddItem")
 async def add_item(item: Item, response: Response):
+    items_collection= get_connection()
     if items_collection.find_one({"id": item.id}, {"_id":0}):
         response.status_code= status.HTTP_409_CONFLICT
         return {"Error": "Item with that ID already exist"}  
@@ -37,6 +41,7 @@ async def add_item(item: Item, response: Response):
 
 @router.delete("/DeleteItems")
 async def delete_items(response: Response):
+    items_collection= get_connection()
     result = items_collection.delete_many({})
     if result.deleted_count ==0:
         response.status_code= status.HTTP_400_BAD_REQUEST
@@ -45,6 +50,7 @@ async def delete_items(response: Response):
 
 @router.delete("/DeleteItem/{item_id}")
 async def delete_item(item_id: str, response: Response):
+    items_collection= get_connection()
     result = items_collection.delete_one({"id":item_id})
     if result.deleted_count==0:
         response.status_code=status.HTTP_400_BAD_REQUEST
