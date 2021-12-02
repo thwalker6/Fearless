@@ -1,13 +1,9 @@
-
-from unittest import mock
 from fastapi import status
 from fastapi.testclient import TestClient
-from starlette import responses
 from api.app import app
 import mongomock
-from fastapi.encoders import jsonable_encoder
-
 from unittest.mock import patch
+
 client = TestClient(app)
 item = {
     "id":"1",

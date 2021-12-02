@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from fastapi import APIRouter, Path, Response, responses,status
+from fastapi import APIRouter, Path, Response, status
 from models.item import Item
 from typing import List
 from fastapi.encoders import jsonable_encoder
@@ -10,6 +10,8 @@ def get_connection():
     myclient = MongoClient(host='mongodb',port=27017)    
     mydb = myclient["inventory"]
     return mydb["items"]
+
+#Get all items in db
 @router.get("/GetAllItems")
 async def get_items(response: Response):
     items_collection= get_connection()
@@ -21,6 +23,7 @@ async def get_items(response: Response):
         return {"Error": "No items in the inventory."}
     return output
 
+#Get a single item from the db
 @router.get("/GetItemById/{item_id}")
 async def get_item_by_id(item_id: str, response: Response):
     items_collection= get_connection()
@@ -30,6 +33,7 @@ async def get_item_by_id(item_id: str, response: Response):
     response.status_code=status.HTTP_404_NOT_FOUND
     return {"Error":"Item not found"}
 
+#add an item to the db
 @router.post("/AddItem")
 async def add_item(item: Item, response: Response):
     items_collection= get_connection()
@@ -39,6 +43,7 @@ async def add_item(item: Item, response: Response):
     items_collection.insert_one(jsonable_encoder(item))
     return {"Message": "Added Item"}
 
+#Remove all itesm from the db
 @router.delete("/DeleteItems")
 async def delete_items(response: Response):
     items_collection= get_connection()
@@ -48,6 +53,7 @@ async def delete_items(response: Response):
         return {"Error": "No items in the inventory."}
     return {"Message": "Items deleted successfully!"}
 
+#Delete a single item from the db
 @router.delete("/DeleteItem/{item_id}")
 async def delete_item(item_id: str, response: Response):
     items_collection= get_connection()
