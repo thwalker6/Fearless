@@ -4,7 +4,6 @@ from models.item import Item
 from typing import List
 from fastapi.encoders import jsonable_encoder
 
-
 router = APIRouter()
 def get_connection():
     myclient = MongoClient(host='mongodb',port=27017)    
