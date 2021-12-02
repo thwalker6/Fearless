@@ -12,3 +12,15 @@ Using FastAPI establish a basic api for an Item.  Make it so you can add/remove/
 8) get it to work because I missed something small
 9) Obsessivley go over my work before submitting
 10) Finally submit my work.
+
+
+Would adds:
+Additional unit test.  It has good coverage not great.  I figured the amount added was enough to show whats going on.
+Additional properties to items.  Currently there are only 2 properties, name and ID.  I put it in a mongodb since it would make it easier to add stuff.
+Would seperate db stuff from the service into a seperate component.  Makes it simpler in some regards.
+different environmental configurations/ports
+Security/Access.  I mean its an api, you need some protection on it.  This has none.
+
+Things I did for the first time here:
+Patched a mongodb through for a connection.  I have practically only dealt with SQL databases so noSQL is a bit new to me. Patching in a mongodb was a bit new to me, and very little documentaiton on how to do it in this type of scenario.  I kind of winged it.
+Setting up mongodb in a docker file with the environment to have everything run at once.  Had to watch some "fun" youtube videos on that.
